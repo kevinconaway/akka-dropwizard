@@ -1,4 +1,5 @@
-# Dropwizard Metrics for Akka Actors
+# Dropwizard Metrics for Akka Actors 
+![build status](https://travis-ci.com/kevinconaway/akka-dropwizard.svg?branch=master "build status)
 
 This project instruments an Akka ActorSystem to provide Dropwizard metrics for Actors.  Currently, the following
 metrics are captured:
@@ -42,7 +43,7 @@ argument to your VM startup properties:
 
     -javaagent:/path/to/akka-dropwizard-agent-1.0.jar
 
-# Compatibility matrix
+# Compatibility Matrix
 
 Below are the versions Akka and Dropwizard that this library uses in each version
 
