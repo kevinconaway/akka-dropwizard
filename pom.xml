@@ -5,7 +5,7 @@
 
     <groupId>com.github.kevinconaway</groupId>
     <artifactId>akka-dropwizard-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <packaging>pom</packaging>
 
     <name>Akka Dropwizard Parent Pom</name>
@@ -27,7 +27,7 @@
     <scm>
         <url>https://github.com/kevinconaway/akka-dropwizard</url>
         <developerConnection>scm:git:https://github.com/kevinconaway/akka-dropwizard.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>akka-dropwizard-parent-1.0</tag>
     </scm>
 
     <licenses>
