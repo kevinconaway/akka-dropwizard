@@ -1,5 +1,5 @@
 # Dropwizard Metrics for Akka Actors 
-![build status](https://travis-ci.com/kevinconaway/akka-dropwizard.svg?branch=master "build status)
+![build status](https://travis-ci.com/kevinconaway/akka-dropwizard.svg?branch=master "build status")
 
 This project instruments an Akka ActorSystem to provide Dropwizard metrics for Actors.  Currently, the following
 metrics are captured:
