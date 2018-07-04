@@ -1,16 +1,13 @@
 package com.github.kevinconaway.akka.metrics;
 
-import akka.dispatch.MailboxType;
-import akka.dispatch.MessageQueue;
-import com.codahale.metrics.Timer;
-import com.github.kevinconaway.akka.metrics.advice.CleanupMessageQueueAdvice;
-import com.github.kevinconaway.akka.metrics.advice.CreateMessageQueueAdvice;
-import com.github.kevinconaway.akka.metrics.advice.DequeueEnvelopeAdvice;
-import com.github.kevinconaway.akka.metrics.advice.EnqueueEnvelopeAdvice;
+import com.github.kevinconaway.akka.metrics.dynamic.AgentClassFileLocator;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.AgentBuilder.Listener;
 import net.bytebuddy.description.modifier.Visibility;
+import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.implementation.FieldAccessor;
+import net.bytebuddy.pool.TypePool;
 
 import java.lang.instrument.Instrumentation;
 import java.util.Collections;
@@ -38,9 +35,11 @@ public class MonitoringAgent {
     static AgentBuilder builder() {
         AgentBuilder agentBuilder = new AgentBuilder.Default();
 
+        ClassFileLocator locator = AgentClassFileLocator.create();
+
         agentBuilder = instrumentEnvelope(agentBuilder);
-        agentBuilder = instrumentMessageQueue(agentBuilder);
-        agentBuilder = instrumentMailbox(agentBuilder);
+        agentBuilder = instrumentMessageQueue(agentBuilder, locator);
+        agentBuilder = instrumentMailbox(agentBuilder, locator);
 
         return agentBuilder;
     }
@@ -59,11 +58,16 @@ public class MonitoringAgent {
             );
     }
 
-    private static AgentBuilder instrumentMessageQueue(AgentBuilder agentBuilder) {
+    private static AgentBuilder instrumentMessageQueue(AgentBuilder agentBuilder, ClassFileLocator locator) {
+        TypePool typePool = TypePool.Default.of(locator);
+        TypeDescription messageQueue = typePool.describe("akka.dispatch.MessageQueue").resolve();
+        TypeDescription timer = typePool.describe("com.codahale.metrics.Timer").resolve();
+        TypeDescription monitorableMessageQueue = typePool.describe("com.github.kevinconaway.akka.metrics.MonitorableMessageQueue").resolve();
+
         return agentBuilder
             .type(
                 isSubTypeOf(
-                    MessageQueue.class
+                    messageQueue
                 ).and(
                     not(isAbstract())
                 )
@@ -71,34 +75,35 @@ public class MonitoringAgent {
             .transform(
                 new AgentBuilder.Transformer.ForAdvice()
                     .include(
-                        EnqueueEnvelopeAdvice.class.getClassLoader(),
-                        DequeueEnvelopeAdvice.class.getClassLoader(),
-                        CleanupMessageQueueAdvice.class.getClassLoader()
+                        locator
                     )
-                    .advice(named("enqueue"), EnqueueEnvelopeAdvice.class.getName())
-                    .advice(named("dequeue"), DequeueEnvelopeAdvice.class.getName())
-                    .advice(named("cleanUp"), CleanupMessageQueueAdvice.class.getName())
+                    .advice(named("enqueue"), "com.github.kevinconaway.akka.metrics.advice.EnqueueEnvelopeAdvice")
+                    .advice(named("dequeue"), "com.github.kevinconaway.akka.metrics.advice.DequeueEnvelopeAdvice")
+                    .advice(named("cleanUp"), "com.github.kevinconaway.akka.metrics.advice.CleanupMessageQueueAdvice")
             )
             .transform(
                 (builder, typeDescription, classLoader, module) ->
                     builder
                         .defineField("metricPrefix", String.class, Visibility.PRIVATE)
-                        .defineField("waitTimer", Timer.class, Visibility.PRIVATE)
-                        .implement(MonitorableMessageQueue.class).intercept(FieldAccessor.ofBeanProperty())
+                        .defineField("waitTimer", timer, Visibility.PRIVATE)
+                        .implement(monitorableMessageQueue).intercept(FieldAccessor.ofBeanProperty())
             );
     }
 
-    private static AgentBuilder instrumentMailbox(AgentBuilder agentBuilder) {
+    private static AgentBuilder instrumentMailbox(AgentBuilder agentBuilder, ClassFileLocator locator) {
+        TypePool typePool = TypePool.Default.of(locator);
+        TypeDescription mailboxType = typePool.describe("akka.dispatch.MailboxType").resolve();
+
         return agentBuilder
             .type(
-                isSubTypeOf(MailboxType.class)
+                isSubTypeOf(mailboxType)
             )
             .transform(
                 new AgentBuilder.Transformer.ForAdvice()
                     .include(
-                        CreateMessageQueueAdvice.class.getClassLoader()
+                        locator
                     )
-                    .advice(named("create"), CreateMessageQueueAdvice.class.getName())
+                    .advice(named("create"), "com.github.kevinconaway.akka.metrics.advice.CreateMessageQueueAdvice")
             );
     }
 
@@ -128,4 +133,5 @@ public class MonitoringAgent {
 
         return arguments;
     }
+
 }
