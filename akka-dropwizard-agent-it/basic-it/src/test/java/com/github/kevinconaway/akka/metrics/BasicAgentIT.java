@@ -33,7 +33,7 @@ public class BasicAgentIT {
 
         String message = "test";
 
-        CompletionStage<Object> stage = PatternsCS.ask(actor, message, TimeUnit.SECONDS.toMillis(1));
+        CompletionStage<Object> stage = PatternsCS.ask(actor, message, TimeUnit.SECONDS.toMillis(10));
 
         assertThat(stage.toCompletableFuture().join()).isEqualTo(message);
 
