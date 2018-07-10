@@ -22,9 +22,11 @@ public class DequeueEnvelopeAdvice {
 
             Long enqueueTime = monitorableEnvelope.getEnqueueTime();
 
-            long elapsed = System.nanoTime() - enqueueTime;
+            if (enqueueTime != null) {
+                long elapsed = System.nanoTime() - enqueueTime;
 
-            waitTimer.update(elapsed, TimeUnit.NANOSECONDS);
+                waitTimer.update(elapsed, TimeUnit.NANOSECONDS);
+            }
         }
 
         return envelope;

@@ -78,6 +78,7 @@ public class MonitoringAgent {
                         locator
                     )
                     .advice(named("enqueue"), "com.github.kevinconaway.akka.metrics.advice.EnqueueEnvelopeAdvice")
+                    .advice(named("enqueueFirst"), "com.github.kevinconaway.akka.metrics.advice.EnqueueEnvelopeAdvice")
                     .advice(named("dequeue"), "com.github.kevinconaway.akka.metrics.advice.DequeueEnvelopeAdvice")
                     .advice(named("cleanUp"), "com.github.kevinconaway.akka.metrics.advice.CleanupMessageQueueAdvice")
             )
