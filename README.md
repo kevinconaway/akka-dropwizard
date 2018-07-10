@@ -19,7 +19,7 @@ First, include the _akka-dropwizard-metrics_ module in your project:
         <dependency>
             <groupId>com.github.kevinconaway</groupId>
             <artifactId>akka-dropwizard-metrics</artifactId>
-            <version>1.1</version>
+            <version>1.2</version>
         </dependency>
 
 There is a singleton configuration class, `AkkaDropwizard` that must be configured *before* the `ActorSystem` is created
@@ -41,7 +41,7 @@ AkkaDropwizard.configure(registry, settings);
 The instrumentation is performed by a java agent that you need to run with your application.  Add the following 
 argument to your VM startup properties:
 
-    -javaagent:/path/to/akka-dropwizard-agent-1.1.jar
+    -javaagent:/path/to/akka-dropwizard-agent-1.2.jar
 
 # Compatibility Matrix
 
@@ -51,3 +51,4 @@ Below are the versions Akka and Dropwizard that this library uses in each versio
 | ------------  | ------------          | -------------------   | --------------------
 | 1.0           | 2.5.x (Scala 2.12)    |   3.2.x               | N/A
 | 1.1           | 2.5.x (Scala 2.12)    |   3.2.x               | 2.0.x
+| 1.2           | 2.5.x (Scala 2.12)    |   3.2.x               | 2.0.x
