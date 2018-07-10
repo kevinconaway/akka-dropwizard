@@ -5,8 +5,10 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.PoisonPill;
 import akka.actor.Props;
+import akka.dispatch.DequeBasedMessageQueue;
 import akka.dispatch.Envelope;
 import akka.dispatch.MessageQueue;
+import akka.dispatch.UnboundedDequeBasedMailbox;
 import akka.dispatch.UnboundedMailbox;
 import akka.testkit.javadsl.TestKit;
 import com.codahale.metrics.MetricRegistry;
@@ -141,6 +143,28 @@ public class MonitoringAgentTest {
     public void testParseArguments_Empty() {
         assertThat(MonitoringAgent.parseArguments(null)).isEmpty();
         assertThat(MonitoringAgent.parseArguments("")).isEmpty();
+    }
+
+    @Test
+    public void testDequeBasedMailbox() {
+        ActorRef actor = actorSystem.actorOf(Props.create(EchoActor.class), "echo-actor");
+
+        UnboundedDequeBasedMailbox mailbox = UnboundedDequeBasedMailbox.apply();
+
+        DequeBasedMessageQueue queue = (DequeBasedMessageQueue) mailbox.create(Option.apply(actor), Option.apply(actorSystem));
+
+        Envelope envelope = Envelope.apply("test", actor);
+
+        queue.enqueueFirst(ActorRef.noSender(), envelope);
+
+        Object dequeued = queue.dequeue();
+
+        assertThat(dequeued).isInstanceOf(MonitorableEnvelope.class);
+
+        MonitorableEnvelope monitorableEnvelope = (MonitorableEnvelope) dequeued;
+
+        assertThat(monitorableEnvelope.getEnqueueTime()).isNotNull();
+
     }
 
     private static class EchoActor extends AbstractActor {
